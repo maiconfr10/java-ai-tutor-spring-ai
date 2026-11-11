@@ -12,115 +12,94 @@ import br.com.portfolio.primeiraia.dto.RespostaEstruturada;
 import br.com.portfolio.primeiraia.dto.ResumoRequest;
 import br.com.portfolio.primeiraia.dto.ResumoEstruturado;
 
-
 @RestController
 @RequestMapping("/api/ai")
 public class ChatController {
 
-    private final ChatService chatService;
+	private final ChatService chatService;
 
-    public ChatController(ChatService chatService) {
-        this.chatService = chatService;
-    }
+	public ChatController(ChatService chatService) {
+		this.chatService = chatService;
+	}
 
-    @PostMapping("/chat")
-    public ChatResponse conversar(
-            @RequestBody ChatRequest request) {
+	@PostMapping("/chat")
+	public ChatResponse conversar(@RequestBody ChatRequest request) {
 
-        if (request.mensagem() == null ||
-            request.mensagem().isBlank()) {
+		if (request.mensagem() == null || request.mensagem().isBlank()) {
 
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "A mensagem nao pode estar vazia"
-            );
-        }
-        
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A mensagem nao pode estar vazia");
+		}
 
+		String nivel = request.nivel();
 
-String nivel = request.nivel();
+		if (nivel == null || nivel.isBlank()) {
+			nivel = "iniciante";
+		}
 
-if (nivel == null || nivel.isBlank()) {
-    nivel = "iniciante";
-}
+		nivel = nivel.toLowerCase(java.util.Locale.ROOT);
 
-nivel = nivel.toLowerCase(java.util.Locale.ROOT);
+		if (!java.util.List.of("iniciante", "intermediario", "avancado").contains(nivel)) {
 
-if (!java.util.List.of(
-        "iniciante",
-        "intermediario",
-        "avancado"
-    ).contains(nivel)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nivel invalido");
+		}
 
-    throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
-        "Nivel invalido"
-    );
-}
+		String resposta = chatService.responder(request.mensagem(), nivel);
 
-String resposta = chatService
-    .responder(request.mensagem(), nivel);
+		return new ChatResponse(resposta);
+	}
 
+	@PostMapping("/estruturado")
+	public RespostaEstruturada responderEstruturado(@RequestBody ChatRequest request) {
 
-        return new ChatResponse(resposta);
-    }
+		String mensagem = request.mensagem();
+		String nivel = request.nivel();
 
-@PostMapping("/estruturado")
-public RespostaEstruturada responderEstruturado(
-        @RequestBody ChatRequest request) {
+		if (mensagem == null || mensagem.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A mensagem nao pode estar vazia");
+		}
 
+		if (nivel == null || nivel.isBlank()) {
+			nivel = "iniciante";
+		}
 
-String mensagem = request.mensagem();
-String nivel = request.nivel();
+		nivel = nivel.trim().toLowerCase(java.util.Locale.ROOT);
 
+		if (!java.util.List.of("iniciante", "intermediario", "avancado").contains(nivel)) {
 
-    if (mensagem == null || mensagem.isBlank()) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "A mensagem nao pode estar vazia"
-        );
-    }
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nivel invalido");
+		}
 
-    if (nivel == null || nivel.isBlank()) {
-        nivel = "iniciante";
-    }
+		return chatService.responderEstruturado(mensagem, nivel);
+	}
 
-    nivel = nivel.trim().toLowerCase(
-        java.util.Locale.ROOT
-    );
+	@PostMapping("/resumir")
+	public ResumoEstruturado resumir(@RequestBody ResumoRequest request) {
 
-    if (!java.util.List.of(
-            "iniciante", "intermediario", "avancado"
-        ).contains(nivel)) {
+		String texto = request.getTexto();
 
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "Nivel invalido"
-        );
-    }
+		if (texto == null || texto.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O texto nao pode estar vazio");
+		}
 
-    return chatService.responderEstruturado(
-        mensagem, nivel
-    );
-}
+		return chatService.resumirTexto(texto);
+	}
 
-@PostMapping("/resumir")
-public ResumoEstruturado resumir(
-        @RequestBody ResumoRequest request) {
+	@PostMapping("/estoque")
+	public ChatResponse consultarEstoque(@RequestBody ChatRequest request) {
 
-    String texto = request.getTexto();
+		String mensagem = request.mensagem();
 
-    if (texto == null || texto.isBlank()) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "O texto nao pode estar vazio"
-        );
-    }
+		if (mensagem == null || mensagem.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A mensagem nao pode estar vazia");
+		}
 
-    return chatService.resumirTexto(texto);
-}
+		String resposta = chatService.consultarEstoqueComIA(mensagem);
 
+		if (resposta == null || resposta.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "O servico de IA retornou uma resposta vazia");
+		}
 
+		return new ChatResponse(resposta);
+	}
 
-    
 }
