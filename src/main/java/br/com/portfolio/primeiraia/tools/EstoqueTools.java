@@ -34,7 +34,7 @@ public class EstoqueTools {
             Utilize quando o usuario perguntar
             sobre quantidade ou disponibilidade.
             """,
-        returnDirect = true,
+        returnDirect = false,
         resultConverter = TextoSimplesConverter.class
     )
     public String consultarEstoque(
@@ -86,7 +86,7 @@ public class EstoqueTools {
             Utilize quando o usuario perguntar
             quais produtos precisam ser repostos.
             """,
-        returnDirect = true,
+        returnDirect = false,
         resultConverter = TextoSimplesConverter.class
     )
     public String listarProdutosEstoqueBaixo() {
@@ -138,7 +138,7 @@ public class EstoqueTools {
         unidades totais, estoque baixo
         e produtos esgotados.
         """,
-    returnDirect = true,
+    returnDirect = false,
     resultConverter = TextoSimplesConverter.class
 )
 
